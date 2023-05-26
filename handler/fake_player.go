@@ -55,7 +55,7 @@ func (p FakePlayer) Join(addr string, name string) {
 
 	err := p.Client.JoinServer(addr)
 	if err != nil {
-		log.Fatalf("[%s] %v\n", p.getName(), err)
+		log.Printf("[%s] %v\n", p.getName(), err)
 	}
 
 	p.playerList = playerlist.New(p.Client)
@@ -88,7 +88,7 @@ func (p FakePlayer) Join(addr string, name string) {
 		if errors.As(err, &perr) {
 			log.Printf("[%s] %v\n", p.getName(), perr)
 		} else {
-			log.Fatalf("[%s] %v\n", p.getName(), err)
+			log.Printf("[%s] %v\n", p.getName(), err)
 		}
 	}
 }
