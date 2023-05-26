@@ -89,6 +89,7 @@ func (p FakePlayer) Join(addr string, name string) {
 			log.Printf("[%s] %v\n", p.getName(), perr)
 		} else {
 			log.Printf("[%s] %v\n", p.getName(), err)
+			break
 		}
 	}
 }
