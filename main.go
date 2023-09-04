@@ -47,13 +47,14 @@ func addBot(name string, password string) {
 }
 
 func printCmd() {
-	log.Println("Available commands:")
-	log.Println("list: list all bots")
-	log.Println("join <name> [password]: join a new bot")
-	log.Println("quit <name>: quit a bot")
-	log.Println("chat <name> <message>: let a bot chat something (or /command)")
-	log.Println("show-chat <name>: show chat received from a bot")
-	log.Println("exit: shutdown")
+	log.Println("=== Tool treo bot Minehay ===")
+	log.Println("Lệnh:")
+	log.Println("* list: xem danh sách bot")
+	log.Println("* join <name> [password]: tạo bot vào server")
+	log.Println("* quit <name>: sút bot khỏi server")
+	log.Println("* chat <name> <message>: cho bot chat (hoặc dùng /lệnh)")
+	log.Println("* show-chat <name>: hiển thị chat từ server mà bot chơi")
+	log.Println("* exit: huỷ treo và thoát")
 }
 
 func listenCommands() {
