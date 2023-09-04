@@ -18,9 +18,12 @@ var players = make(map[string]*handler.FakePlayer)
 func main() {
 	addr = os.Getenv("addr")
 	if addr == "" {
-		addr = "localhost"
+		addr = "minehay.com"
 	}
 	password = os.Getenv("password")
+	if password == "" {
+		password = "minehay32123"
+	}
 
 	group.Add(1)
 	go listenCommands()
@@ -43,20 +46,26 @@ func addBot(name string, password string) {
 	}()
 }
 
+func printCmd() {
+	log.Println("Available commands:")
+	log.Println("list: list all bots")
+	log.Println("join <name> [password]: join a new bot")
+	log.Println("quit <name>: quit a bot")
+	log.Println("chat <name> <message>: let a bot chat something (or /command)")
+	log.Println("show-chat <name>: show chat received from a bot")
+	log.Println("exit: shutdown")
+}
+
 func listenCommands() {
+	printCmd()
+
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		text := strings.TrimSpace(scanner.Text())
 		args := strings.Split(text, " ")
 
 		if len(args) == 0 || len(args[0]) == 0 || args[0] == "help" {
-			log.Println("Available commands:")
-			log.Println("exit")
-			log.Println("join <name> [password]")
-			log.Println("list")
-			log.Println("quit <name>")
-			log.Println("chat <name> <message>")
-			log.Println("show-chat <name>")
+			printCmd()
 			continue
 		}
 

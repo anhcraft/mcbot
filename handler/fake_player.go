@@ -8,10 +8,8 @@ import (
 	"github.com/Tnze/go-mc/bot/msg"
 	"github.com/Tnze/go-mc/bot/playerlist"
 	"github.com/Tnze/go-mc/chat"
-	"github.com/Tnze/go-mc/data/packetid"
 	"github.com/Tnze/go-mc/net/packet"
 	"log"
-	"strings"
 	"time"
 )
 
@@ -56,22 +54,6 @@ func (p FakePlayer) Join(addr string, name string) {
 			return p.onDeath()
 		},
 		Teleported: nil,
-	})
-	p.Client.Events.AddListener(bot.PacketHandler{
-		Priority: 64, ID: packetid.ClientboundOpenScreen,
-		F: p.onOpenScreen,
-	})
-	p.Client.Events.AddListener(bot.PacketHandler{
-		Priority: 64, ID: packetid.ClientboundContainerSetContent,
-		F: p.onSetScreenContent,
-	})
-	p.Client.Events.AddListener(bot.PacketHandler{
-		Priority: 64, ID: packetid.ClientboundContainerSetSlot,
-		F: p.onSetScreenSlot,
-	})
-	p.Client.Events.AddListener(bot.PacketHandler{
-		Priority: 64, ID: packetid.ClientboundContainerClose,
-		F: p.onCloseScreen,
 	})
 
 	err := p.Client.JoinServer(addr)
@@ -154,14 +136,7 @@ func (p FakePlayer) runLoginTask() {
 		log.Printf("[%s] Logging in....\n", p.getName())
 		p.Chat("/login " + p.Password)
 		time.Sleep(time.Duration(2) * time.Second)
-		p.visitServer()
-	}()
-}
-
-func (p FakePlayer) visitServer() {
-	go func() {
-		log.Printf("[%s] Trying to visit server....\n", p.getName())
-		p.Chat("/menu")
+		log.Printf("[%s] Logged in\n", p.getName())
 	}()
 }
 
@@ -170,89 +145,4 @@ func (p FakePlayer) Quit() {
 	if err != nil {
 		log.Printf("[%s] %v\n", p.getName(), err)
 	}
-}
-
-func (p FakePlayer) onOpenScreen(pk packet.Packet) error {
-	var (
-		ContainerID packet.VarInt
-		Type        packet.VarInt
-		Title       chat.Message
-	)
-	if err := pk.Scan(&ContainerID, &Type, &Title); err != nil {
-		log.Printf("[%s] %v\n", p.getName(), err)
-		return err
-	} else {
-		log.Printf("[%s] Opened Container: %d, Type: %d, Title: %s\n", p.getName(), ContainerID, Type, Title)
-		p.CurrentContainer = ContainerID
-		if strings.Contains(Title.String(), "sᴇʀvᴇʀ sᴇʟᴇcтoʀ") {
-			p.clickContainer(10, 0, 0, ChangedSlots{}, &p.Cursor)
-		}
-	}
-	return nil
-}
-
-func (p FakePlayer) onSetScreenContent(pk packet.Packet) error {
-	var (
-		ContainerID packet.UnsignedByte
-		StateID     packet.VarInt
-		SlotData    []Slot
-		CarriedItem Slot
-	)
-	if err := pk.Scan(
-		&ContainerID,
-		&StateID,
-		packet.Array(&SlotData),
-		&CarriedItem,
-	); err != nil {
-		log.Printf("[%s] %v\n", p.getName(), err)
-		return err
-	} else {
-		p.ScreenState = StateID
-	}
-	return nil
-}
-
-func (p FakePlayer) onSetScreenSlot(pk packet.Packet) error {
-	var (
-		ContainerID packet.Byte
-		StateID     packet.VarInt
-		SlotID      packet.Short
-		SlotData    Slot
-	)
-	if err := pk.Scan(&ContainerID, &StateID, &SlotID, &SlotData); err != nil {
-		log.Printf("[%s] %v\n", p.getName(), err)
-		return err
-	}
-
-	p.ScreenState = StateID
-
-	if ContainerID == -1 && SlotID == -1 {
-		p.Cursor = SlotData
-	}
-
-	return nil
-}
-
-func (p FakePlayer) onCloseScreen(pk packet.Packet) error {
-	var ContainerID packet.UnsignedByte
-	if err := pk.Scan(&ContainerID); err != nil {
-		log.Printf("[%s] %v\n", p.getName(), err)
-		return err
-	} else if int(p.CurrentContainer) == int(ContainerID) {
-		log.Printf("[%s] Closed Container: %d\n", p.getName(), ContainerID)
-	}
-	return nil
-}
-
-func (p FakePlayer) clickContainer(slot int16, button byte, mode int32, slots ChangedSlots, carried *Slot) error {
-	return p.Client.Conn.WritePacket(packet.Marshal(
-		packetid.ServerboundContainerClick,
-		packet.UnsignedByte(p.CurrentContainer),
-		p.ScreenState,
-		packet.Short(slot),
-		packet.Byte(button),
-		packet.VarInt(mode),
-		slots,
-		carried,
-	))
 }
