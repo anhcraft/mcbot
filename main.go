@@ -89,6 +89,7 @@ func listenCommands() {
 			if len(args) == 2 {
 				if player, ok := players[args[1]]; ok {
 					player.Quit()
+					delete(players, args[1])
 				} else {
 					log.Println("Player not found")
 				}
